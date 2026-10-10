@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Star · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .story-line {
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+  }
+  .color-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+  }
+  .nav-arrow {
+    transition: transform 0.25s ease, color 0.25s ease;
+  }
+  .nav-arrow:hover { transform: translateX(-4px); color: #fff; }
+  .nav-arrow.next:hover { transform: translateX(4px); }
+
+  /* --- Section title + underline divider (landing-page style) --- */
+  .section-title-wrap {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .section-title-wrap .section-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 0.6rem;
+  }
+  .section-title-wrap h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .section-title-wrap .title-underline {
+    width: 48px;
+    height: 2px;
+    background: rgba(255,255,255,0.25);
+    margin: 0.9rem auto 0;
+  }
+
+  .trait-card {
+    text-align: center;
+    padding: 1.75rem 1.25rem;
+    border-radius: 1.25rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.3s ease, background 0.3s ease;
+  }
+  .trait-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+  }
+  .trait-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.95rem;
+    margin: 0 auto 1rem;
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <div id="starfield" class="starfield"></div>
+  <div id="floatParticles" class="float-particles"></div>
+
+  <div class="page-content">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <main id="starMain" class="max-w-2xl mx-auto px-6 py-16 sm:py-20">
+    <!-- content injected by script below -->
+  </main>
+
+  <footer class="text-center text-white/30 text-xs pb-12">
+    <a href="stars.html" class="underline hover:text-white/60">← Back to all stars</a>
+  </footer>
+
+  </div>
+  <!-- /.page-content -->
+
+  <script src="star-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    // Maps each star's Korean color label to an actual glowing hex color
+    const COLOR_HEX = {
+      "화이트 블루": "#cfe8ff",
+      "소프트 옐로우": "#fff3b0",
+      "라일락": "#d8bfe0",
+      "오렌지": "#ff9142",
+      "골드": "#ffd166",
+      "아이스 블루": "#a8e6ff",
+      "스카이 블루": "#6ec6ff",
+      "레드": "#ff5c5c",
+      "실버": "#dcdfe4",
+      "퍼플": "#b388eb",
+      "크림 옐로우": "#ffe9a8",
+      "딥 블루": "#4d6fd9",
+    };
+
+    function getStarFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("star");
+      return STAR_DATA.find((s) => s.slug === slug) || STAR_DATA[0];
+    }
+
+    function renderStar(star) {
+      const idx = STAR_DATA.findIndex((s) => s.slug === star.slug);
+      const prev = STAR_DATA[(idx - 1 + STAR_DATA.length) % STAR_DATA.length];
+      const next = STAR_DATA[(idx + 1) % STAR_DATA.length];
+
+      document.title = `${star.nameKo} / ${star.nameEn} · Lithos`;
+      const colorHex = COLOR_HEX[star.color] || "#ffffff";
+
+      const main = document.getElementById("starMain");
+      main.innerHTML = `
+        <!-- Hero -->
+        <div class="text-center mb-14">
+          <p class="reveal text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
+            ${star.monthKo} · N&deg;${String(star.month).padStart(2, "0")}
+          </p>
+          <h1 class="reveal font-playfair italic text-white text-5xl sm:text-6xl md:text-7xl tracking-tight mb-4">
+            ${star.nameEn}
+          </h1>
+          <p class="reveal text-white/60 text-lg mb-5">${star.nameKo} · ${star.tagline}</p>
+          <div class="reveal color-chip" style="box-shadow: 0 0 24px ${colorHex}55;">
+            <span class="color-dot" style="background:${colorHex}; box-shadow: 0 0 10px 2px ${colorHex}aa;"></span>
+            <span class="text-white/70 text-xs tracking-wide">${star.color}</span>
+          </div>
+        </div>
+
+        <div id="tiltCard" class="tile-card shine-card reveal mb-20" style="aspect-ratio: 16/9;">
+          <img src="${star.image}" alt="${star.nameKo} / ${star.nameEn}" style="object-position: center 30%;" />
+          <div class="overlay"></div>
+          <div class="shine-sweep"></div>
+        </div>
+
+        <!-- Interpretation -->
+        <section class="mb-20">
+          <div class="reveal section-title-wrap">
+            <p class="section-eyebrow">Interpretation</p>
+            <h2>${star.tagline}</h2>
+            <div class="title-underline"></div>
+          </div>
+          <p class="reveal text-white/75 text-base leading-relaxed text-center max-w-xl mx-auto" style="transition-delay:120ms;">${star.interpretation}</p>
+        </section>
+
+        <!-- This might be you -->
+        <section class="mb-20">
+          <div class="reveal section-title-wrap">
+            <p class="section-eyebrow">Character</p>
+            <h2>이런 사람이 많습니다</h2>
+            <div class="title-underline"></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            ${star.peopleList
+              .map(
+                (line, i) => `
+              <div class="reveal trait-card" style="transition-delay:${120 + i * 90}ms;">
+                <span class="trait-num">${String(i + 1).padStart(2, "0")}</span>
+                <p class="text-white/80 text-sm leading-relaxed">${line}</p>
+              </div>`
+              )
+              .join("")}
+          </div>
+        </section>
+
+        <!-- Why this star -->
+        <section class="mb-20">
+          <div class="reveal section-title-wrap">
+            <p class="section-eyebrow">Why</p>
+            <h2>왜 ${star.nameKo}인가?</h2>
+            <div class="title-underline"></div>
+          </div>
+          <p class="reveal text-white/75 text-base leading-relaxed text-center max-w-xl mx-auto" style="transition-delay:120ms;">${star.why}</p>
+        </section>
+
+        <!-- World story -->
+        <section class="mb-20">
+          <div class="reveal section-title-wrap">
+            <p class="section-eyebrow">World</p>
+            <h2>${star.storyTitle}</h2>
+            <div class="title-underline"></div>
+          </div>
+          <div class="glass-card px-6 py-10 sm:px-10 sm:py-12 flex flex-col gap-3 text-center max-w-xl mx-auto">
+            ${star.story
+              .map(
+                (line, i) => `<p class="reveal story-line text-white/70 text-base sm:text-lg leading-relaxed" style="transition-delay:${i * 110}ms;">${line}</p>`
+              )
+              .join("")}
+          </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="mb-16 text-center">
+          <div class="reveal section-title-wrap" style="margin-bottom: 1.25rem;">
+            <p class="section-eyebrow">Summary</p>
+            <h2>${star.tagline} · ${star.color}</h2>
+            <div class="title-underline"></div>
+          </div>
+          <p class="reveal text-white/50 text-sm max-w-md mx-auto" style="transition-delay:120ms;">${star.extra}</p>
+        </section>
+
+        <!-- Prev / Next -->
+        <div class="reveal flex items-center justify-between pt-8 border-t border-white/10">
+          <a href="star-detail.html?star=${prev.slug}" class="nav-arrow prev text-white/50 text-sm">
+            ← ${prev.nameKo}
+          </a>
+          <a href="stars.html" class="text-white/30 text-xs tracking-widest uppercase hover:text-white/60">
+            All Stars
+          </a>
+          <a href="star-detail.html?star=${next.slug}" class="nav-arrow next text-white/50 text-sm">
+            ${next.nameKo} →
+          </a>
+        </div>
+      `;
+
+      // Note: common.js's DOMContentLoaded reveal-observer runs after this
+      // script (which executes during initial parse), so it will pick up
+      // these freshly-injected .reveal elements automatically.
+    }
+
+    // --- Ambient floating particles (gentle upward drift) ---
+    const floatContainer = document.getElementById("floatParticles");
+    const PARTICLE_COUNT = 22;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = document.createElement("span");
+      p.className = "float-particle";
+      const size = 2 + Math.random() * 3;
+      p.style.width = size + "px";
+      p.style.height = size + "px";
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.animationDuration = (10 + Math.random() * 10) + "s";
+      p.style.animationDelay = (Math.random() * 12) + "s";
+      floatContainer.appendChild(p);
+    }
+
+    renderStar(getStarFromQuery());
+  </script>
+
+</body>
+</html>

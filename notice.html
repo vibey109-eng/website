@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Notice · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .notice-card {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 1.75rem;
+    transition: transform 0.45s cubic-bezier(0.16,1,0.3,1),
+                border-color 0.35s ease,
+                background 0.35s ease,
+                box-shadow 0.45s ease;
+  }
+  .notice-card:hover {
+    transform: translateY(-8px) scale(1.015);
+    border-color: rgba(255,255,255,0.28);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45), 0 0 40px var(--accent-glow, rgba(74,111,165,0.25));
+  }
+  .notice-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent, #4a6fa5);
+    opacity: 0.7;
+    transition: opacity 0.35s ease, width 0.35s ease;
+  }
+  .notice-card:hover::before {
+    opacity: 1;
+    width: 6px;
+  }
+  .notice-icon-ring {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    background: radial-gradient(circle at 30% 30%, var(--accent, #2e425f) 0%, rgba(255,255,255,0.05) 70%);
+    flex-shrink: 0;
+  }
+  .notice-icon-ring::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    border: 1px solid var(--accent, #4a6fa5);
+    opacity: 0.4;
+    animation: notice-pulse 2.4s ease-out infinite;
+  }
+  @keyframes notice-pulse {
+    0%   { transform: scale(0.85); opacity: 0.55; }
+    70%  { transform: scale(1.25); opacity: 0; }
+    100% { transform: scale(1.25); opacity: 0; }
+  }
+  .new-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: #87a5b3;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+    animation: badge-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
+    50% { box-shadow: 0 0 0 6px rgba(255,92,92,0); }
+  }
+  .modal-box.notice-modal-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent, #4a6fa5);
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <div id="starfield" class="starfield"></div>
+  <div id="floatParticles" class="float-particles"></div>
+
+  <div class="page-content">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <!-- Centered intro -->
+  <section class="min-h-[45vh] flex flex-col items-center justify-center text-center px-6 py-16">
+    <p class="hero-fade-in text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-4" style="animation-delay:0.05s;">
+      Updates
+    </p>
+    <h1 class="hero-fade-in text-white text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight mb-6" style="animation-delay:0.15s;">
+      Notice
+    </h1>
+    <p class="hero-fade-in text-white/60 text-base sm:text-lg leading-relaxed max-w-xl mt-1" style="animation-delay:0.3s;">
+      月星談에서 이루어지는 새로운 소식을 가장 빠르게 확인해보세요 
+    </p>
+  </section>
+
+  <!-- Notice list -->
+  <section class="max-w-3xl mx-auto px-6 pb-28">
+    <div id="noticeList" class="flex flex-col gap-5"></div>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs pb-12">
+    <a href="index.html" class="underline hover:text-white/60">← Back to home</a>
+  </footer>
+
+  </div>
+  <!-- /.page-content -->
+
+  <!-- Notice detail modal -->
+  <div id="noticeModalBackdrop" class="modal-backdrop">
+    <div class="modal-box notice-modal-box" id="noticeModalBox">
+      <span id="noticeModalClose" class="modal-close">&times;</span>
+      <div class="flex items-center gap-3 mb-4">
+        <div id="noticeModalIcon" class="notice-icon-ring" style="width:44px;height:44px;font-size:18px;"></div>
+        <p id="noticeModalTag" class="text-white/40 text-xs tracking-widest uppercase"></p>
+      </div>
+      <h2 id="noticeModalTitle" class="text-white text-xl font-semibold mb-1"></h2>
+      <p id="noticeModalDate" class="text-white/40 text-sm mb-6"></p>
+      <p id="noticeModalBody" class="text-white/75 text-sm leading-relaxed"></p>
+    </div>
+  </div>
+
+  <script>
+    const NOTICES = [
+      {
+        tag: "content",
+        title: "月星談 서버를 오픈합니다.",
+        date: "Aug 2026",
+        icon: "☆",
+        accent: "#c0d6eb",
+        isNew: true,
+        body: "月星談 서비스가 정식으로 오픈했습니다. 태어난 달을 지키는 열두 개의 별을 만나보세요. 메인 화면의 Start click 버튼을 눌러 나의 별을 확인하실 수 있고, Stars 메뉴에서는 열두 별 전체를 둘러보실 수 있습니다. 앞으로도 매달 새로운 콘텐츠와 기능이 추가될 예정이니 많은 관심 부탁드립니다."
+      },
+      {
+        tag: "Content",
+        title: "열두개의 별 페이지 안내",
+        date: "Aug 2026",
+        icon: "★",
+        accent: "#649acd",
+        isNew: false,
+        body: "각 별의 이름, 색, 성격, 세계관 스토리를 담은 열두 개의 프로필 페이지가 공개되었습니다. 기존의 서버에서는 일부 별의 정보만 확인하실 수 있었지만, 이제 모든 별의 이야기를 만나보실 수 있습니다."
+      },
+      {
+        tag: "wating...",
+        title: "Coming soon",
+        date: "Coming soon..",
+        icon: "☆",
+        accent: "#145b9d",
+        isNew: false,
+        body: "다음에 나올 월성담의 소식을 기다려주세요."
+      }
+    ];
+
+    const listEl = document.getElementById("noticeList");
+    const backdrop = document.getElementById("noticeModalBackdrop");
+    const modalBox = document.getElementById("noticeModalBox");
+    const modalIcon = document.getElementById("noticeModalIcon");
+    const modalTag = document.getElementById("noticeModalTag");
+    const modalTitle = document.getElementById("noticeModalTitle");
+    const modalDate = document.getElementById("noticeModalDate");
+    const modalBody = document.getElementById("noticeModalBody");
+
+    function openNoticeModal(notice) {
+      modalBox.style.setProperty("--accent", notice.accent);
+      modalIcon.style.setProperty("--accent", notice.accent);
+      modalIcon.textContent = notice.icon;
+      modalTag.textContent = notice.tag;
+      modalTitle.textContent = notice.title;
+      modalDate.textContent = notice.date;
+      modalBody.textContent = notice.body;
+      backdrop.classList.add("open");
+    }
+    function closeNoticeModal() {
+      backdrop.classList.remove("open");
+    }
+
+    NOTICES.forEach((notice, i) => {
+      const card = document.createElement("div");
+      card.className = "notice-card reveal";
+      card.style.transitionDelay = (i * 110) + "ms";
+      card.style.setProperty("--accent", notice.accent);
+      card.style.setProperty("--accent-glow", notice.accent + "40");
+      card.innerHTML = `
+        <div class="flex items-center gap-4">
+          <div class="notice-icon-ring" style="--accent:${notice.accent};">${notice.icon}</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <p class="text-white/40 text-xs tracking-widest uppercase">${notice.tag}</p>
+              ${notice.isNew ? `<span class="new-badge">NEW</span>` : ""}
+            </div>
+            <p class="text-white text-lg font-medium">${notice.title}</p>
+          </div>
+          <span class="text-white/40 text-sm whitespace-nowrap hidden sm:block">${notice.date}</span>
+        </div>
+      `;
+      card.addEventListener("click", () => openNoticeModal(notice));
+      listEl.appendChild(card);
+    });
+
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) closeNoticeModal();
+    });
+    document.getElementById("noticeModalClose").addEventListener("click", closeNoticeModal);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeNoticeModal();
+    });
+
+    // --- Ambient floating particles ---
+    const floatContainer = document.getElementById("floatParticles");
+    const PARTICLE_COUNT = 20;
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = document.createElement("span");
+      p.className = "float-particle";
+      const size = 2 + Math.random() * 3;
+      p.style.width = size + "px";
+      p.style.height = size + "px";
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.animationDuration = (10 + Math.random() * 10) + "s";
+      p.style.animationDelay = (Math.random() * 12) + "s";
+      floatContainer.appendChild(p);
+    }
+  </script>
+
+  <script src="common.js"></script>
+
+</body>
+</html>

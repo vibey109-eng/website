@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Memo · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+    margin-top: 13px;
+  }
+  .color-swatch:hover { transform: scale(1.15); }
+  .color-swatch.selected {
+    border-color: #ffffff;
+    transform: scale(1.15);
+  }
+  .guest-star.is-own {
+    cursor: grab;
+  }
+  .guest-star.is-own:active {
+    cursor: grabbing;
+  }
+  .guest-star.is-own::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 9999px;
+    border: 1px dashed rgba(255,255,255,0.35);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .guest-star.is-own:hover::after {
+    opacity: 1;
+  }
+  .guest-star.is-dragging {
+    transition: none !important;
+    animation: none !important;
+    z-index: 10;
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <!-- Centered intro -->
+  <section class="min-h-[45vh] flex flex-col items-center justify-center text-center px-6 py-16">
+    <p class="hero-fade-in text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-4" style="animation-delay:0.05s;">
+      From Friends
+    </p>
+    <h1 class="hero-fade-in text-white text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight mb-6" style="animation-delay:0.15s;">
+      Memo
+    </h1>
+    <p class="hero-fade-in text-white/60 text-base sm:text-lg leading-relaxed max-w-xl" style="animation-delay:0.3s;">
+      떠다니는 별에 작은 글귀를 적어 하늘로 날려보세요 ! <br>별을 드래그해서 위치를 조정할 수 있습니다
+    </p>
+  </section>
+
+  <!-- Guestbook, as stars in the sky -->
+  <section class="max-w-4xl mx-auto px-6 pb-28">
+
+    <div id="guestSky" class="reveal relative w-full rounded-2xl overflow-hidden border border-white/10"
+         style="height: 460px; background: radial-gradient(ellipse at 50% 30%, #10182c 0%, #05070d 75%);">
+      <!-- guestbook stars injected here -->
+    </div>
+
+    <form id="guestForm" class="reveal mt-8 flex flex-col gap-4 max-w-xl mx-auto">
+      <div class="flex flex-col sm:flex-row gap-3">
+        <input id="guestName" type="text" placeholder="이름" maxlength="20"
+               class="glow-input rounded-full px-5 py-3 text-white placeholder-white/30 sm:flex-1" />
+        <input id="guestMessage" type="text" placeholder="한마디 남기기" maxlength="80"
+               class="glow-input rounded-full px-5 py-3 text-white placeholder-white/30 sm:flex-[2]" />
+      </div>
+      <div class="flex items-center justify-center gap-3">
+        <span class="text-white/40 text-xs tracking-widest uppercase mr-1 mt-3">별 색상</span>
+        <div id="colorPicker" class="flex items-center gap-2"></div>
+      </div>
+      <button type="submit"
+              class="bg-[#1e3a5f] hover:bg-[#16293f] text-white text-sm font-medium px-6 py-3 rounded-full transition-all hover:scale-[1.03] active:scale-95 self-center mt-3">
+        별 남기기
+      </button>
+    </form>
+    <p class="text-white/30 text-xs text-center mt-10">
+      ※ 이 브라우저에만 저장돼요. 내가 남긴 별은 드래그해서 위치를 옮길 수 있어요.
+    </p>
+  </section>
+
+  <!-- Guestbook message modal -->
+  <div id="guestModalBackdrop" class="modal-backdrop">
+    <div class="modal-box">
+      <span id="guestModalClose" class="modal-close">&times;</span>
+      <p id="guestModalName" class="text-white/40 text-xs tracking-widest uppercase mb-2"></p>
+      <p id="guestModalMessage" class="text-white text-lg leading-relaxed"></p>
+      <p id="guestModalDate" class="text-white/30 text-xs mt-6"></p>
+    </div>
+  </div>
+
+  <footer class="text-center text-white/30 text-xs pb-12">
+    <a href="index.html" class="underline hover:text-white/60">← Back to home</a>
+  </footer>
+
+  <script>
+    const GUESTBOOK_KEY = "lithosGuestbook";
+
+    const COLORS = [
+      { name: "화이트", hex: "#ffffff" },
+      { name: "스카이 블루", hex: "#6ec6ff" },
+      { name: "골드", hex: "#ffd166" },
+      { name: "핑크", hex: "#ff8fb1" },
+      { name: "민트", hex: "#7df2c5" },
+      { name: "라일락", hex: "#c9a6ec" },
+    ];
+
+
+
+    function loadGuestbook() {
+      try {
+        const raw = localStorage.getItem(GUESTBOOK_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      localStorage.setItem(GUESTBOOK_KEY, JSON.stringify(SEED_MESSAGES));
+      return SEED_MESSAGES.slice();
+    }
+
+    function saveGuestbook(entries) {
+      try {
+        localStorage.setItem(GUESTBOOK_KEY, JSON.stringify(entries));
+      } catch (e) {}
+    }
+
+    let guestbook = loadGuestbook();
+    // Older entries saved before the color/isOwn fields existed: backfill defaults.
+    guestbook.forEach((e) => {
+      if (!e.color) e.color = "#ffffff";
+      if (typeof e.isOwn !== "boolean") e.isOwn = false;
+    });
+
+    const guestSky = document.getElementById("guestSky");
+    const guestBackdrop = document.getElementById("guestModalBackdrop");
+    const guestModalName = document.getElementById("guestModalName");
+    const guestModalMessage = document.getElementById("guestModalMessage");
+    const guestModalDate = document.getElementById("guestModalDate");
+
+    function openGuestModal(entry) {
+      guestModalName.textContent = entry.name || "익명";
+      guestModalMessage.textContent = entry.message;
+      guestModalDate.textContent = entry.createdAt
+        ? new Date(entry.createdAt).toLocaleDateString("ko-KR")
+        : "";
+      guestBackdrop.classList.add("open");
+    }
+    function closeGuestModal() {
+      guestBackdrop.classList.remove("open");
+    }
+
+    // --- Color picker ---
+    let selectedColor = COLORS[0].hex;
+    const colorPickerEl = document.getElementById("colorPicker");
+    COLORS.forEach((c, i) => {
+      const swatch = document.createElement("span");
+      swatch.className = "color-swatch" + (i === 0 ? " selected" : "");
+      swatch.style.background = c.hex;
+      swatch.title = c.name;
+      swatch.addEventListener("click", () => {
+        selectedColor = c.hex;
+        colorPickerEl.querySelectorAll(".color-swatch").forEach((el) => el.classList.remove("selected"));
+        swatch.classList.add("selected");
+      });
+      colorPickerEl.appendChild(swatch);
+    });
+
+    // --- Star rendering + drag-to-move (only for isOwn stars) ---
+    function renderGuestStar(entry, isNew) {
+      const star = document.createElement("span");
+      star.className = "guest-star" + (entry.isOwn ? " is-own" : "") + (isNew ? " is-new" : "");
+      star.dataset.id = entry.id;
+      const size = 4 + Math.random() * 3;
+      star.style.width = size + "px";
+      star.style.height = size + "px";
+      star.style.left = entry.x + "%";
+      star.style.top = entry.y + "%";
+      star.style.background = entry.color;
+      star.style.boxShadow = `0 0 8px 2px ${entry.color}cc`;
+      star.style.animationDelay = isNew ? "0s" : (Math.random() * 3) + "s";
+
+      let didDrag = false;
+
+      if (entry.isOwn) {
+        star.addEventListener("mousedown", (downEvent) => {
+          downEvent.preventDefault();
+          didDrag = false;
+          star.classList.add("is-dragging");
+          const skyRect = guestSky.getBoundingClientRect();
+
+          function onMove(moveEvent) {
+            didDrag = true;
+            let xPct = ((moveEvent.clientX - skyRect.left) / skyRect.width) * 100;
+            let yPct = ((moveEvent.clientY - skyRect.top) / skyRect.height) * 100;
+            xPct = Math.max(2, Math.min(98, xPct));
+            yPct = Math.max(4, Math.min(96, yPct));
+            star.style.left = xPct + "%";
+            star.style.top = yPct + "%";
+            entry.x = xPct;
+            entry.y = yPct;
+          }
+
+          function onUp() {
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
+            star.classList.remove("is-dragging");
+            if (didDrag) saveGuestbook(guestbook);
+          }
+
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("mouseup", onUp);
+        });
+      }
+
+      star.addEventListener("click", () => {
+        if (!didDrag) openGuestModal(entry);
+        didDrag = false;
+      });
+
+      guestSky.appendChild(star);
+    }
+
+    guestbook.forEach((entry) => renderGuestStar(entry, false));
+
+    document.getElementById("guestForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById("guestName");
+      const messageInput = document.getElementById("guestMessage");
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      const entry = {
+        id: Date.now(),
+        name: nameInput.value.trim() || "익명",
+        message: message,
+        x: 8 + Math.random() * 84,
+        y: 15 + Math.random() * 65,
+        color: selectedColor,
+        isOwn: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      guestbook.push(entry);
+      saveGuestbook(guestbook);
+      renderGuestStar(entry, true);
+
+      nameInput.value = "";
+      messageInput.value = "";
+    });
+
+    guestBackdrop.addEventListener("click", (e) => {
+      if (e.target === guestBackdrop) closeGuestModal();
+    });
+    document.getElementById("guestModalClose").addEventListener("click", closeGuestModal);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeGuestModal();
+    });
+  </script>
+
+  <script src="common.js"></script>
+
+</body>
+</html>

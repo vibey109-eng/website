@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Company · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap');
+
+* { font-family: 'Inter', sans-serif; }
+.font-playfair { font-family: 'Playfair Display', serif; }
+
+@keyframes heroReveal { 0%{opacity:0;transform:translateY(28px);filter:blur(12px)} 100%{opacity:1;transform:translateY(0);filter:blur(0)} }
+@keyframes heroFadeUp { 0%{opacity:0;transform:translateY(20px)} 100%{opacity:1;transform:translateY(0)} }
+@keyframes heroZoom { 0%{transform:scale(1.12)} 100%{transform:scale(1)} }
+
+.hero-anim { opacity:0; animation-fill-mode:forwards; animation-timing-function:cubic-bezier(0.16,1,0.3,1); }
+.hero-reveal { animation-name:heroReveal; animation-duration:1.1s; }
+.hero-fade { animation-name:heroFadeUp; animation-duration:1s; }
+.hero-zoom { animation:heroZoom 1.8s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+@media (prefers-reduced-motion: reduce){
+  .hero-anim, .hero-zoom { animation:none; opacity:1; }
+}
+
+/* ---- Shared "Stars-page" vibe: used across Course / Company / Notice / Brand / Sign Up / Start ---- */
+
+.hero-fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: heroFadeUp 1s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tile-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #0a0d16;
+}
+.tile-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s cubic-bezier(0.16,1,0.3,1), filter 0.7s ease;
+  transform: scale(1.05);
+  filter: saturate(0.85) brightness(0.85);
+}
+.tile-card:hover img {
+  transform: scale(1.15) rotate(0.5deg);
+  filter: saturate(1.1) brightness(1);
+}
+.tile-card .overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(5,7,13,0.95) 0%, rgba(5,7,13,0.15) 55%, rgba(5,7,13,0) 100%);
+}
+.tile-card .glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35), 0 0 40px rgba(120,150,255,0.25);
+  border-radius: 1rem;
+  pointer-events: none;
+}
+.tile-card:hover .glow { opacity: 1; }
+.tile-card .label {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 1.1rem 1.1rem 1.3rem;
+  transform: translateY(8px);
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.tile-card:hover .label { transform: translateY(0); }
+
+.glass-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1.25rem;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+}
+.glass-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 0 40px rgba(120,150,255,0.15);
+}
+
+.notice-row {
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition: padding-left 0.4s cubic-bezier(0.16,1,0.3,1), background 0.4s ease;
+}
+.notice-row::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: #4a6fa5;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.notice-row:hover {
+  padding-left: 1rem;
+  background: rgba(255,255,255,0.03);
+}
+.notice-row:hover::before { transform: scaleY(1); }
+
+.glow-input {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+.glow-input:focus {
+  outline: none;
+  border-color: #4a6fa5;
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 0 0 4px rgba(74,111,165,0.15);
+}
+
+/* ---- Shared starfield background (twinkling stars + shooting star + mouse parallax) ----
+   Add <div id="starfield" class="starfield"></div> as the first thing in <body>,
+   then wrap the rest of the page's content in <div class="page-content">...</div>.
+   common.js auto-populates #starfield if it finds one on the page. */
+
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  transition: transform 0.3s ease-out;
+}
+.star-dot {
+  position: absolute;
+  border-radius: 9999px;
+  background: #ffffff;
+  box-shadow: 0 0 6px 1px rgba(255,255,255,0.8);
+  animation-name: twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+.shooting-star-wrap {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  animation-name: shoot-move;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.shooting-star-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 140px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0));
+  border-radius: 9999px;
+  transform-origin: left center;
+  /* rotation is set inline per element, computed from its own travel direction */
+}
+@keyframes shoot-move {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  2%   { opacity: 1; }
+  16%  { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+  100% { transform: translate(var(--tx), var(--ty)); opacity: 0; }
+}
+
+.page-content { position: relative; z-index: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .star-dot, .shooting-star-wrap { animation: none !important; opacity: 0.4; }
+  .starfield { transition: none; }
+}
+
+</style>
+<style>
+  /* --- Round (orbit-style) carousel for the twelve stars --- */
+  .round-carousel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 0 2rem;
+  }
+  .round-stage {
+    position: relative;
+    width: 100%;
+    max-width: 880px;
+    height: 400px;
+    perspective: 1400px;
+  }
+  .round-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 210px;
+    aspect-ratio: 3 / 4;
+    margin-left: -105px;
+    margin-top: -140px;
+    border-radius: 1rem;
+    overflow: hidden;
+    cursor: pointer;
+    background: #0a0d16;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.5);
+    transition: transform 0.55s cubic-bezier(0.22,1,0.36,1), opacity 0.55s ease, filter 0.55s ease;
+  }
+  .round-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter 0.4s ease;
+  }
+  .round-card:not(.is-active) img {
+    filter: saturate(0.6) brightness(0.55);
+  }
+  .round-card .round-label {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 0.9rem;
+    background: linear-gradient(to top, rgba(5,7,13,0.95), rgba(5,7,13,0));
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .round-card.is-active .round-label {
+    opacity: 1;
+  }
+  .round-nav-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  }
+  .round-nav-btn:hover {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.4);
+    transform: scale(1.08);
+  }
+  .round-nav-btn:active { transform: scale(0.95); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .round-card { transition: none; }
+  }
+
+  /* --- Scroll-driven moon phase widget --- */
+  .moon-phase-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    z-index: 60;
+    border-radius: 9999px;
+    overflow: hidden;
+    box-shadow: 0 0 24px rgba(255,255,255,0.12), 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .moon-base {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 35% 32%, #fffdf6, #d7dbe2 65%, #aeb4bf 100%);
+  }
+  .moon-shadow {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: #05070d;
+    transform: translateX(-100%);
+  }
+
+  /* --- Top scroll-progress bar --- */
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #4a6fa5, #1e3a5f);
+    z-index: 70;
+    transition: width 0.05s linear;
+  }
+
+  /* --- Pinned hero: sticks in place while its text scales/fades on scroll --- */
+  .pin-wrap {
+    position: relative;
+    height: 200vh;
+  }
+  .pin-inner {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 1.5rem;
+    will-change: transform, opacity;
+  }
+
+  /* --- Scroll-scrubbed reveal: driven continuously by scroll position,
+     not just triggered once (see updateScrub() in the script below) --- */
+  .scrub {
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: transform, opacity;
+  }
+  .scrub-card {
+    opacity: 0;
+    transform: translateY(50px) rotateX(12deg);
+    transform-origin: bottom center;
+    will-change: transform, opacity;
+  }
+  .scrub-perspective {
+    perspective: 1000px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pin-inner, .scrub, .scrub-card { transition: none; opacity: 1 !important; transform: none !important; }
+  }
+
+  /* --- Timeline: vertical line fills in as you scroll past it --- */
+  .timeline {
+    position: relative;
+    max-width: 560px;
+    margin: 0 auto;
+    padding-left: 32px;
+  }
+  .timeline-line-bg {
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: rgba(255,255,255,0.12);
+  }
+  .timeline-line-fill {
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    width: 2px;
+    height: 0%;
+    background: linear-gradient(180deg, #4a6fa5, #1e3a5f);
+  }
+  .timeline-item { position: relative; padding-bottom: 3.25rem; }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-dot {
+    position: absolute;
+    left: -32px;
+    top: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background: #05070d;
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <div id="starfield" class="starfield"></div>
+  <div class="scroll-progress" id="scrollProgress"></div>
+  <div class="moon-phase-widget" aria-hidden="true">
+    <div class="moon-base"></div>
+    <div class="moon-shadow" id="moonShadow"></div>
+  </div>
+
+  <div class="page-content">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="data:image/png;base64,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" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <!-- Pinned intro: stays fixed in view while scaling/fading as you scroll through it -->
+  <section class="pin-wrap">
+    <div class="pin-inner" id="pinHero">
+      <p class="hero-fade-in text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-6" style="animation-delay:0.05s;">
+        Company
+      </p>
+      <h1 class="hero-fade-in text-white text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight mb-8" style="animation-delay:0.15s;">
+        月星談
+      </h1>
+      <p class="hero-fade-in text-white/60 text-base sm:text-lg leading-relaxed max-w-xl" style="animation-delay:0.3s;">
+        별과 이야기가 가득한 월성담의 브랜드 스토리를 <br> 스크롤을 내리면서 확인해보세요
+      </p>
+      <p class="hero-fade-in text-white/30 text-xs mt-10 tracking-widest uppercase" style="animation-delay:0.5s;">
+        ↓ Scroll
+      </p>
+    </div>
+  </section>
+
+  <!-- Twelve stars — drag or scroll horizontally -->
+  <section class="pb-24 scrub-perspective">
+    <div class="text-center mb-10 px-6">
+      <p class="scrub text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-6">
+        The Collection
+      </p>
+      <h2 class="scrub text-white text-4xl sm:text-6xl font-bold tracking-tight mb-">
+        열두가지 별들
+      </h2>
+      <p class="scrub text-white/30 text-xs tracking-widest uppercase">
+        Swipe or use the arrows
+      </p>
+    </div>
+    <div class="round-carousel">
+      <button id="roundPrev" class="round-nav-btn" aria-label="Previous star">&#8249;</button>
+      <div class="round-stage" id="roundStage">
+        <!-- 12 star cards injected by script below -->
+      </div>
+      <button id="roundNext" class="round-nav-btn" aria-label="Next star">&#8250;</button>
+    </div>
+  </section>
+
+  <!-- Second pinned scene: a chapter-break quote -->
+  <section class="pin-wrap">
+    <div class="pin-inner" id="pinQuote">
+      <p class="text-white/40 text-xs font-semibold tracking-[0.3em] uppercase mb-6">
+        A Simple Idea
+      </p>
+      <p class="font-playfair italic text-white text-6xl sm:text-2xl md:text-5xl max-w-4xl">
+        태어난 달의 별이 한 사람의 이야기가 된다
+        <span class="font-playfair block mt-6">월주는 단순한 운세가 아니다</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- Timeline -->
+  <section class="max-w-3xl mx-auto px-6 pb-28">
+    <div class="text-center mb-16">
+      <p class="scrub text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-4">
+        Timeline
+      </p>
+      <h2 class="scrub text-white text-3xl sm:text-4xl font-semibold tracking-tight">
+        어떻게 만들어졌을까?
+      </h2>
+    </div>
+
+    <div class="timeline" id="timeline">
+      <div class="timeline-line-bg"></div>
+      <div class="timeline-line-fill" id="timelineFill"></div>
+
+      <div class="timeline-item scrub">
+        <div class="timeline-dot"></div>
+        <p class="text-white/40 text-xs tracking-widest uppercase mb-2">
+          <span class="count-up" data-target="2026">0</span> · Origin
+        </p>
+        <p class="text-white/70 leading-relaxed">
+          올해 저는 졸업전시를 위해 이것저것 주제를 검색해보다가 별 월주에 대해 알게 되었습니다 조사하면 조사할수록 더욱 재밌었고, 이 주제를 사람들에게 알리고 싶어져서 브랜드 "月星談"을 만들었습니다
+        </p>
+      </div>
+
+      <div class="timeline-item scrub">
+        <div class="timeline-dot"></div>
+        <p class="text-white/40 text-xs tracking-widest uppercase mb-2">Mission · Rediscovery</p>
+        <p class="text-white/70 leading-relaxed">
+          평소에는 잘 알지 못하던 별의 이름들을 이렇게 관찰하고 알아보니 더욱 새롭고 신기함의 연속이였습니다
+        </p>
+      </div>
+
+      <div class="timeline-item scrub">
+        <div class="timeline-dot"></div>
+        <p class="text-white/40 text-xs tracking-widest uppercase mb-2">
+          <span class="count-up" data-target="12" data-suffix=" Months">0 Months</span> · Reach
+        </p>
+        <p class="text-white/70 leading-relaxed">
+          여러분들도 이번 기회에 여러분들과 비슷한 별에 대해 알아보는 시간을 가지는것은 어떨까요?
+        </p>
+      </div>
+
+      <div class="timeline-item scrub">
+        <div class="timeline-dot"></div>
+        <p class="text-white/40 text-xs tracking-widest uppercase mb-2">What's Next</p>
+        <p class="text-white/70 leading-relaxed">
+          저의 졸업전시는 여기서 끝나지만 여러분에게 기억되는것은 평생이였으면 좋겠습니다 ! 지금까지 저의 브랜드 월성담을 관람해주셔서 감사합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brand story -->
+  <section class="max-w-3xl mx-auto px-6 pb-28 text-center flex flex-col gap-6">
+    <div class="scrub">
+      <p class="text-white/70 leading-relaxed">
+        月星談 은 달월, 별성, 이야기 담을 뜻하는 한자로 구성된 브랜드입니다
+      </p>
+    </div>
+    <div class="scrub">
+      <p class="text-white/70 leading-relaxed">
+        서두르지 않고, 매달 하나씩 열두 개의 별을 통해 하늘과 조금 더
+        가까워지는 것이 <br>이 브랜드를 통해 전하고 싶은 이야기입니다.
+      </p>
+    </div>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs pb-12">
+    <a href="index.html" class="underline hover:text-white/60">← Back to home</a>
+  </footer>
+
+  </div>
+  <!-- /.page-content -->
+
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Scroll reveal (fade + rise into view) ---
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+  document.querySelectorAll(".reveal").forEach((el) => revealObserver.observe(el));
+
+  // --- Count-up numbers (e.g. <span class="count-up" data-target="2026">0</span>) ---
+  function animateCount(el) {
+    const target = parseInt(el.dataset.target, 10);
+    if (Number.isNaN(target)) return;
+    const suffix = el.dataset.suffix || "";
+    const duration = 1400;
+    const start = performance.now();
+
+    function tick(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const value = Math.floor(eased * target);
+      el.textContent = value + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = target + suffix;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const countObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          countObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.4 }
+  );
+  document.querySelectorAll(".count-up").forEach((el) => countObserver.observe(el));
+
+  // --- Starfield background (twinkling stars + a shooting star + mouse parallax) ---
+  // Opt in by adding <div id="starfield" class="starfield"></div> to a page.
+  const starfield = document.getElementById("starfield");
+  if (starfield) {
+    const STAR_COUNT = 90;
+    for (let i = 0; i < STAR_COUNT; i++) {
+      const dot = document.createElement("span");
+      dot.className = "star-dot";
+      const size = Math.random() * 2 + 1; // 1px - 3px
+      dot.style.width = size + "px";
+      dot.style.height = size + "px";
+      dot.style.left = Math.random() * 100 + "vw";
+      dot.style.top = Math.random() * 100 + "vh";
+      dot.style.animationDuration = (Math.random() * 3 + 2) + "s"; // 2s - 5s
+      dot.style.animationDelay = (Math.random() * 5) + "s";
+      starfield.appendChild(dot);
+    }
+
+    // Travel vector (dx, dy): falling down-and-to-the-RIGHT.
+    // To flip the fall direction, flip the sign of TRAVEL_DX and swap the
+    // spawn-X range below to the opposite side — the bar's tilt is derived
+    // from this same vector, so it will always match the direction of travel.
+    const TRAVEL_DX = 480;
+    const TRAVEL_DY = 340;
+    const barAngleDeg = Math.atan2(-TRAVEL_DY, -TRAVEL_DX) * (180 / Math.PI);
+
+    const SHOOTER_COUNT = 3;
+    for (let i = 0; i < SHOOTER_COUNT; i++) {
+      const wrap = document.createElement("span");
+      wrap.className = "shooting-star-wrap";
+      wrap.style.top = (Math.random() * 40) + "vh";
+      wrap.style.left = (5 + Math.random() * 40) + "vw"; // spawns on the side it's falling FROM
+      wrap.style.setProperty("--tx", TRAVEL_DX + "px");
+      wrap.style.setProperty("--ty", TRAVEL_DY + "px");
+      wrap.style.animationDuration = (Math.random() * 5 + 6) + "s"; // 6s - 11s
+      wrap.style.animationDelay = (Math.random() * 8) + "s";
+
+      const bar = document.createElement("span");
+      bar.className = "shooting-star-bar";
+      bar.style.transform = `rotate(${barAngleDeg}deg)`;
+
+      wrap.appendChild(bar);
+      starfield.appendChild(wrap);
+    }
+
+    window.addEventListener("mousemove", (e) => {
+      const dx = (e.clientX / window.innerWidth - 0.5) * 24;
+      const dy = (e.clientY / window.innerHeight - 0.5) * 24;
+      starfield.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+  }
+});
+
+</script>
+  <script src="star-data.js"></script>
+  <script>
+    // --- Generate the 12 star cards for the round carousel ---
+    const roundStage = document.getElementById("roundStage");
+    const roundCards = STAR_DATA.map((star, i) => {
+      const card = document.createElement("div");
+      card.className = "round-card";
+      card.innerHTML = `
+        <img src="${star.image}" alt="${star.nameKo} / ${star.nameEn}" />
+        <div class="round-label">
+          <p class="text-white/50 text-xs tracking-widest uppercase mb-1">${star.monthKo}</p>
+          <p class="text-white text-lg font-semibold tracking-tight">${star.nameEn}</p>
+        </div>
+      `;
+      card.addEventListener("click", () => {
+        activeIndex = i;
+        updateRoundCarousel();
+      });
+      roundStage.appendChild(card);
+      return card;
+    });
+
+    let activeIndex = 0;
+    const TOTAL = roundCards.length;
+
+    function updateRoundCarousel() {
+      roundCards.forEach((card, i) => {
+        // Shortest signed offset from the active card, wrapping around 12 items
+        let offset = i - activeIndex;
+        if (offset > TOTAL / 2) offset -= TOTAL;
+        if (offset < -TOTAL / 2) offset += TOTAL;
+
+        const abs = Math.abs(offset);
+        const translateX = offset * 130;
+        const translateZ = -abs * 90;
+        const rotateY = -offset * 14;
+        const scale = Math.max(1 - abs * 0.14, 0.5);
+        const opacity = abs <= 4 ? 1 - abs * 0.2 : 0;
+        const zIndex = 100 - abs;
+
+        card.style.transform =
+          `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`;
+        card.style.opacity = opacity;
+        card.style.zIndex = zIndex;
+        card.style.pointerEvents = abs <= 4 ? "auto" : "none";
+        card.classList.toggle("is-active", offset === 0);
+      });
+    }
+
+    function goPrev() {
+      activeIndex = (activeIndex - 1 + TOTAL) % TOTAL;
+      updateRoundCarousel();
+    }
+    function goNext() {
+      activeIndex = (activeIndex + 1) % TOTAL;
+      updateRoundCarousel();
+    }
+
+    document.getElementById("roundPrev").addEventListener("click", goPrev);
+    document.getElementById("roundNext").addEventListener("click", goNext);
+
+    // --- Swipe support (touch/mouse drag as a gesture, not free scrolling) ---
+    let dragStartX = null;
+    roundStage.addEventListener("pointerdown", (e) => { dragStartX = e.clientX; });
+    roundStage.addEventListener("pointerup", (e) => {
+      if (dragStartX === null) return;
+      const delta = e.clientX - dragStartX;
+      if (delta > 40) goPrev();
+      else if (delta < -40) goNext();
+      dragStartX = null;
+    });
+
+    updateRoundCarousel();
+
+    // --- Moon phase tied to overall page scroll progress ---
+    const moonShadow = document.getElementById("moonShadow");
+    function updateMoonPhase() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+      const offset = -100 + progress * 200; // -100% (new moon) -> +100% (full moon)
+      moonShadow.style.transform = `translateX(${offset}%)`;
+    }
+    window.addEventListener("scroll", updateMoonPhase);
+    window.addEventListener("resize", updateMoonPhase);
+    updateMoonPhase();
+
+    // --- Top scroll-progress bar ---
+    const scrollProgress = document.getElementById("scrollProgress");
+    function updateScrollProgress() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+      scrollProgress.style.width = (progress * 100) + "%";
+    }
+
+    // --- Pinned hero: scale + fade continuously as you scroll through it ---
+    const pinHero = document.getElementById("pinHero");
+    const pinWrap = pinHero.closest(".pin-wrap");
+    function updatePinHero() {
+      const rect = pinWrap.getBoundingClientRect();
+      const scrollDistance = pinWrap.offsetHeight - window.innerHeight; // extra scroll room
+      const progress = Math.min(1, Math.max(0, -rect.top / scrollDistance));
+      pinHero.style.transform = `scale(${1 - progress * 0.2})`;
+      pinHero.style.opacity = 1 - progress * 1.15;
+    }
+
+    // --- Second pinned scene (chapter-break quote): same scale/fade scrub ---
+    const pinQuote = document.getElementById("pinQuote");
+    const pinQuoteWrap = pinQuote.closest(".pin-wrap");
+    function updatePinQuote() {
+      const rect = pinQuoteWrap.getBoundingClientRect();
+      const scrollDistance = pinQuoteWrap.offsetHeight - window.innerHeight;
+      const progress = Math.min(1, Math.max(0, -rect.top / scrollDistance));
+      pinQuote.style.transform = `scale(${0.85 + progress * 0.15})`;
+      pinQuote.style.opacity = progress < 0.15 ? progress / 0.15 : (progress > 0.85 ? (1 - progress) / 0.15 : 1);
+    }
+
+    // --- Timeline vertical line fill, tied to scroll through the timeline block ---
+    const timelineEl = document.getElementById("timeline");
+    const timelineFill = document.getElementById("timelineFill");
+    function updateTimelineFill() {
+      const rect = timelineEl.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const progress = (vh * 0.8 - rect.top) / (rect.height + vh * 0.3);
+      timelineFill.style.height = (Math.min(1, Math.max(0, progress)) * 100) + "%";
+    }
+
+    // --- Continuous scroll-scrubbed reveal (not one-shot) ---
+    const scrubEls = document.querySelectorAll(".scrub");
+    const scrubCardEls = document.querySelectorAll(".scrub-card");
+
+    function progressFor(el) {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const start = vh * 0.9;   // starts animating when element is 90% down the viewport
+      const end = vh * 0.55;    // fully revealed once it reaches 55% up the viewport
+      const p = (start - rect.top) / (start - end);
+      return Math.min(1, Math.max(0, p));
+    }
+
+    function updateScrubs() {
+      scrubEls.forEach((el) => {
+        const p = progressFor(el);
+        el.style.opacity = p;
+        el.style.transform = `translateY(${(1 - p) * 40}px)`;
+      });
+      scrubCardEls.forEach((el) => {
+        const p = progressFor(el);
+        el.style.opacity = p;
+        el.style.transform = `translateY(${(1 - p) * 50}px) rotateX(${(1 - p) * 12}deg)`;
+      });
+    }
+
+    // --- Single rAF-throttled scroll loop driving all scroll-linked effects ---
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateScrollProgress();
+        updatePinHero();
+        updatePinQuote();
+        updateTimelineFill();
+        updateScrubs();
+        ticking = false;
+      });
+    }
+    window.addEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll);
+    onScroll();
+  </script>
+
+</body>
+</html>

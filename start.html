@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Start · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .month-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1rem;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+    cursor: pointer;
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+  }
+  .month-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+  .month-btn.selected {
+    background: #1e3a5f;
+    border-color: #4a6fa5;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(30,58,95,0.4);
+  }
+  .month-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: rgba(255,255,255,0.12);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .month-btn.selected .month-num {
+    background: rgba(255,255,255,0.25);
+  }
+
+  /* --- Gentle "star focusing" page transition (replaces the old warp burst) --- */
+  .star-transition-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    pointer-events: none;
+    background: #05070d;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .star-transition-overlay.active { opacity: 1; }
+
+  .star-transition-glow {
+    position: absolute;
+    left: var(--origin-x);
+    top: var(--origin-y);
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: var(--glow-color, #ffffff);
+    box-shadow: 0 0 24px 8px var(--glow-color, #ffffff);
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  .star-transition-glow.active {
+    animation: star-glow-grow 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes star-glow-grow {
+    0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    35%  { opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(16); opacity: 0; }
+  }
+
+  .fade-out-content {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    opacity: 0;
+    transform: scale(0.98);
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <!-- Centered intro + finder -->
+  <section class="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-16">
+    <p class="hero-fade-in text-white/50 text-xs font-semibold tracking-[0.3em] uppercase mb-4" style="animation-delay:0.05s;">
+      Find Your Star
+    </p>
+    <h1 class="hero-fade-in text-white text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight mb-6" style="animation-delay:0.15s;">
+      Start
+    </h1>
+    <p class="hero-fade-in text-white/60 text-base sm:text-lg leading-relaxed max-w-xl mb-12" style="animation-delay:0.3s;">
+      Tell us your birth month, and we'll tell you the name, color, and
+      story of the star that guards it.
+    </p>
+
+    <div class="glass-card reveal p-8 sm:p-10 w-full max-w-2xl" style="transition-delay: 0.1s;">
+      <label class="text-white/50 text-xs tracking-widest uppercase mb-4 block text-left">Birth Month</label>
+      <div id="monthGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <!-- 12 month buttons injected by script below -->
+      </div>
+      <button id="startBtn" type="button"
+              class="w-full bg-[#1e3a5f] hover:bg-[#16293f] text-white text-sm font-medium px-7 py-3 rounded-full transition-all hover:scale-[1.03] active:scale-95 hover:shadow-lg hover:shadow-[#4a6fa5]/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled>
+        Reveal My Star
+      </button>
+    </div>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs pb-12">
+    <a href="index.html" class="underline hover:text-white/60">← Back to home</a>
+  </footer>
+
+  <script src="star-data.js"></script>
+  <script>
+    const monthGrid = document.getElementById("monthGrid");
+    const startBtn = document.getElementById("startBtn");
+    let selectedStar = null;
+
+    STAR_DATA.slice().sort((a, b) => a.month - b.month).forEach((star) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "month-btn";
+      btn.innerHTML = `
+        <span class="month-num">${star.month}</span>
+        <span>${star.monthLabel}</span>
+      `;
+      btn.addEventListener("click", () => {
+        monthGrid.querySelectorAll(".month-btn").forEach((el) => el.classList.remove("selected"));
+        btn.classList.add("selected");
+        selectedStar = star;
+        startBtn.disabled = false;
+      });
+      monthGrid.appendChild(btn);
+    });
+
+    const COLOR_HEX = {
+      "화이트 블루": "#cfe8ff",
+      "소프트 옐로우": "#fff3b0",
+      "라일락": "#d8bfe0",
+      "오렌지": "#ff9142",
+      "골드": "#ffd166",
+      "아이스 블루": "#a8e6ff",
+      "스카이 블루": "#6ec6ff",
+      "레드": "#ff5c5c",
+      "실버": "#dcdfe4",
+      "퍼플": "#b388eb",
+      "크림 옐로우": "#ffe9a8",
+      "딥 블루": "#4d6fd9",
+    };
+
+    // --- Gentle "star focusing" transition, then navigate to the result page ---
+    function runStarTransition(originX, originY, colorHex, onDone) {
+      const overlay = document.createElement("div");
+      overlay.className = "star-transition-overlay";
+
+      const glow = document.createElement("div");
+      glow.className = "star-transition-glow";
+      glow.style.setProperty("--origin-x", originX + "px");
+      glow.style.setProperty("--origin-y", originY + "px");
+      glow.style.setProperty("--glow-color", colorHex);
+
+      overlay.appendChild(glow);
+      document.body.appendChild(overlay);
+
+      const finderCard = document.querySelector(".glass-card.reveal");
+      if (finderCard) finderCard.classList.add("fade-out-content");
+
+      requestAnimationFrame(() => {
+        overlay.classList.add("active");
+        glow.classList.add("active");
+      });
+
+      setTimeout(onDone, 1100);
+    }
+
+    startBtn.addEventListener("click", (e) => {
+      if (!selectedStar) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const ox = rect.left + rect.width / 2;
+      const oy = rect.top + rect.height / 2;
+      const colorHex = COLOR_HEX[selectedStar.color] || "#ffffff";
+      startBtn.disabled = true;
+
+      runStarTransition(ox, oy, colorHex, () => {
+        window.location.href = `start-result.html?star=${selectedStar.slug}`;
+      });
+    });
+  </script>
+
+  <script src="common.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Your Star · Lithos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .result-card {
+    position: relative;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 1.75rem;
+    padding: 2.5rem 2rem;
+    max-width: 30rem;
+    width: 100%;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+    animation: result-pop 0.75s cubic-bezier(0.22, 1.4, 0.36, 1) 0.15s forwards;
+  }
+  @keyframes result-pop {
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .result-glow {
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    z-index: -1;
+    filter: blur(20px);
+    opacity: 0.5;
+  }
+  .month-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 9999px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fade-in 0.5s ease 0.7s forwards;
+  }
+  .result-photo {
+    width: 108px;
+    height: 108px;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin: 0 auto 1.25rem;
+    border: 3px solid rgba(255,255,255,0.15);
+    opacity: 0;
+    animation: fade-in 0.5s ease 0.35s forwards;
+  }
+  .result-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .result-name {
+    opacity: 0;
+    animation: fade-in 0.5s ease 0.5s forwards;
+  }
+  .fact-table {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    opacity: 0;
+    animation: fade-in 0.5s ease 0.9s forwards;
+  }
+  .fact-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .fact-row:last-child { border-bottom: none; }
+  .trait-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    opacity: 0;
+    animation: fade-in 0.5s ease 1.05s forwards;
+  }
+  .trait-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
+  }
+  .result-actions {
+    margin-top: 2rem;
+    display: flex;
+    flex-col: column;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: fade-in 0.5s ease 1.2s forwards;
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .stage-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+  }
+</style>
+</head>
+<body class="bg-[#05070d] min-h-screen" style="font-family:'Inter',sans-serif;">
+
+  <div id="starfield" class="starfield"></div>
+
+  <div class="page-content">
+
+  <nav class="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 bg-[#05070d]/90 backdrop-blur-md border-b border-white/10">
+    <a href="index.html" class="flex items-center gap-2">
+      <img src="images/logo.png" alt="Lithos" class="h-8 sm:h-9 w-auto" />
+    </a>
+    <div class="flex flex-wrap justify-center absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/10 border border-white/20 rounded-full px-2 py-2 max-w-[92vw]">
+      <a href="stars.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Stars</a>
+      <a href="company.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Company</a>
+      <a href="notice.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Notice</a>
+      <a href="memo.html" class="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">Memo</a>
+    </div>
+    <a href="signup.html" id="navAuthBtn" class="bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">Sign Up</a>
+  </nav>
+
+  <div class="stage-wrap">
+    <div id="resultRoot"></div>
+  </div>
+
+  </div>
+  <!-- /.page-content -->
+
+  <script src="star-data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    const COLOR_HEX = {
+      "화이트 블루": "#cfe8ff",
+      "소프트 옐로우": "#fff3b0",
+      "라일락": "#d8bfe0",
+      "오렌지": "#ff9142",
+      "골드": "#ffd166",
+      "아이스 블루": "#a8e6ff",
+      "스카이 블루": "#6ec6ff",
+      "레드": "#ff5c5c",
+      "실버": "#dcdfe4",
+      "퍼플": "#b388eb",
+      "크림 옐로우": "#ffe9a8",
+      "딥 블루": "#4d6fd9",
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("star");
+    const star = STAR_DATA.find((s) => s.slug === slug) || STAR_DATA[0];
+    const colorHex = COLOR_HEX[star.color] || "#ffffff";
+
+    document.title = `${star.nameEn} · Your Star · 月星談`;
+
+    const root = document.getElementById("resultRoot");
+    root.innerHTML = `
+      <div class="result-card">
+
+        <span class="month-badge">${star.monthKo} · N&deg;${String(star.month).padStart(2, "0")}</span>
+
+        <div class="result-photo" style="box-shadow: 0 0 30px ${colorHex}66;">
+          <img src="${star.image}" alt="${star.nameKo}" style="object-position: center 30%;" />
+        </div>
+
+        <div class="result-name">
+          <p class="font-playfair italic text-white text-4xl sm:text-5xl tracking-tight mb-1">${star.nameEn}</p>
+          <p class="text-white/60 text-base">${star.nameKo} · ${star.tagline}</p>
+        </div>
+
+        <div class="fact-table">
+          <div class="fact-row">
+            <span class="text-white/40 text-xs tracking-widest uppercase">Month</span>
+            <span class="text-white text-sm font-medium">${star.monthKo} (${star.monthLabel})</span>
+          </div>
+          <div class="fact-row">
+            <span class="text-white/40 text-xs tracking-widest uppercase">Color</span>
+            <span class="text-white text-sm font-medium flex items-center gap-2">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:9999px;background:${colorHex};"></span>
+              ${star.color}
+            </span>
+          </div>
+          <div class="fact-row">
+            <span class="text-white/40 text-xs tracking-widest uppercase">Vibe</span>
+            <span class="text-white text-sm font-medium">${star.tagline}</span>
+          </div>
+        </div>
+
+        <div class="trait-chips">
+          ${star.traits.map((t) => `<span class="trait-chip">${t}</span>`).join("")}
+        </div>
+
+        <div class="result-actions flex flex-col gap-3">
+          <a href="star-detail.html?star=${star.slug}"
+             class="bg-[#1e3a5f] hover:bg-[#16293f] text-white text-sm font-medium px-7 py-3 rounded-full transition-all hover:scale-[1.03] active:scale-95">
+            전체 이야기 보기 →
+          </a>
+          <a href="start.html"
+             class="text-white/50 hover:text-white text-sm transition-colors">
+            다른 달 다시 해보기
+          </a>
+        </div>
+      </div>
+    `;
+  </script>
+
+</body>
+</html>

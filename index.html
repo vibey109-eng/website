@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>月星談</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react,typescript">
+const { useEffect, useRef, useState } = React;
+
+const BG_IMAGE_1 = "https://images.pexels.com/photos/1341279/pexels-photo-1341279.jpeg?_gl=1*18bkuq*_ga*MTM2OTIxODk0NC4xNzg4OTk3MTU3*_ga_8JE65Q40S6*czE3ODg5OTcxNTYkbzEkZzEkdDE3ODg5OTczMDUkajMkbDAkaDA.";
+const BG_IMAGE_2 = "https://images.pexels.com/photos/8022685/pexels-photo-8022685.jpeg?_gl=1*1rmmcmp*_ga*MTM2OTIxODk0NC4xNzg4OTk3MTU3*_ga_8JE65Q40S6*czE3ODg5OTcxNTYkbzEkZzEkdDE3ODg5OTc2MzUkajI5JGwwJGgw";
+const SPOTLIGHT_R = 260;
+const NAV_LINKS = [
+  { label: "Stars", href: "stars.html" },
+  { label: "Company", href: "company.html" },
+  { label: "Notice", href: "notice.html" },
+  { label: "Memo", href: "memo.html" },
+];
+const SIGNUP_HREF = "signup.html";
+const START_HREF = "start.html";
+
+function MenuIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="4" y1="6" x2="20" y2="6"></line>
+      <line x1="4" y1="12" x2="20" y2="12"></line>
+      <line x1="4" y1="18" x2="20" y2="18"></line>
+    </svg>
+  );
+}
+function XIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  );
+}
+
+function RevealLayer({ image, cursorX, cursorY }) {
+  const canvasRef = useRef(null);
+  const [maskUrl, setMaskUrl] = useState("");
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const gradient = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, SPOTLIGHT_R);
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.4, "rgba(255,255,255,1)");
+    gradient.addColorStop(0.6, "rgba(255,255,255,0.75)");
+    gradient.addColorStop(0.75, "rgba(255,255,255,0.4)");
+    gradient.addColorStop(0.88, "rgba(255,255,255,0.12)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(cursorX, cursorY, SPOTLIGHT_R, 0, Math.PI * 2);
+    ctx.fill();
+
+    setMaskUrl(canvas.toDataURL());
+  });
+
+  return (
+    <>
+      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" style={{ display: "none" }} />
+      <div
+        className="absolute inset-0 bg-center bg-cover bg-no-repeat z-30 pointer-events-none"
+        style={{
+          backgroundImage: `url(${image})`,
+          maskImage: maskUrl ? `url(${maskUrl})` : undefined,
+          WebkitMaskImage: maskUrl ? `url(${maskUrl})` : undefined,
+          maskSize: "100% 100%",
+          WebkitMaskSize: "100% 100%",
+        }}
+      />
+    </>
+  );
+}
+
+function LogoutConfirmModal({ onCancel, onConfirm }) {
+  return (
+    <div className="modal-backdrop open" onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="modal-box" style={{ maxWidth: "22rem", textAlign: "center" }}>
+        <p className="text-white text-lg font-medium mb-2">정말 로그아웃 하시겠습니까?</p>
+        <p className="text-white/50 text-sm mb-6">다시 로그인하려면 Sign Up 페이지에서 진행해주세요.</p>
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={onCancel} className="px-5 py-2.5 rounded-full text-sm font-medium text-white/70 border border-white/20 hover:bg-white/10 transition-colors">취소</button>
+          <button onClick={onConfirm} className="px-5 py-2.5 rounded-full text-sm font-medium text-white bg-[#1e3a5f] hover:bg-[#16293f] transition-colors">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Hero() {
+  const mouse = useRef({ x: -999, y: -999 });
+  const smooth = useRef({ x: -999, y: -999 });
+  const rafRef = useRef();
+  const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("lithosCurrentUser");
+      if (raw) setCurrentUser(JSON.parse(raw));
+    } catch (e) {}
+  }, []);
+
+  function handleLogoutConfirm() {
+    localStorage.removeItem("lithosCurrentUser");
+    setCurrentUser(null);
+    setShowLogoutConfirm(false);
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      mouse.current.x = e.clientX;
+      mouse.current.y = e.clientY;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+
+    const loop = () => {
+      smooth.current.x += (mouse.current.x - smooth.current.x) * 0.1;
+      smooth.current.y += (mouse.current.y - smooth.current.y) * 0.1;
+      setCursorPos({ x: smooth.current.x, y: smooth.current.y });
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  return (
+    <section className="relative w-full overflow-hidden h-screen bg-black" style={{ height: "100dvh" }}>
+      <div className="absolute inset-0 bg-center bg-cover bg-no-repeat z-10 hero-zoom" style={{ backgroundImage: `url(${BG_IMAGE_1})` }} />
+
+      <RevealLayer image={BG_IMAGE_2} cursorX={cursorPos.x} cursorY={cursorPos.y} />
+
+      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between p-4 sm:p-5">
+        <a href="index.html" className="flex items-center gap-2">
+          <img src="images/logo.png" alt="Lithos" className="h-8 sm:h-9 w-auto" />
+        </a>
+
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md border border-white/30 rounded-full px-2 py-2 items-center gap-1">
+          {NAV_LINKS.map(({ label, href }) => (
+            <a key={label} href={href} className="px-4 py-1.5 rounded-full text-sm font-medium text-white/80 hover:bg-white/20 hover:text-white transition-colors">
+              {label}
+            </a>
+          ))}
+        </div>
+
+        {currentUser ? (
+          <button
+            onClick={() => setShowLogoutConfirm(true)}
+            className="hidden md:block bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100"
+          >
+            Log Out
+          </button>
+        ) : (
+          <a href={SIGNUP_HREF} className="hidden md:block bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-gray-100">
+            Sign Up
+          </a>
+        )}
+
+        <button className="md:hidden text-white p-2" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen((v) => !v)}>
+          {menuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
+        </button>
+      </nav>
+
+      {menuOpen && (
+        <div className="fixed inset-0 z-[90] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center gap-6 md:hidden">
+          {NAV_LINKS.map(({ label, href }) => (
+            <a key={label} href={href} className="text-white/80 text-lg font-medium">
+              {label}
+            </a>
+          ))}
+          {currentUser ? (
+            <button
+              onClick={() => { setMenuOpen(false); setShowLogoutConfirm(true); }}
+              className="mt-4 bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full"
+            >
+              Log Out
+            </button>
+          ) : (
+            <a href={SIGNUP_HREF} className="mt-4 bg-white text-gray-900 text-sm font-semibold px-6 py-2.5 rounded-full">Sign Up</a>
+          )}
+        </div>
+      )}
+
+      {showLogoutConfirm && (
+        <LogoutConfirmModal
+          onCancel={() => setShowLogoutConfirm(false)}
+          onConfirm={handleLogoutConfirm}
+        />
+      )}
+
+      <div className="absolute top-[14%] left-0 right-0 flex flex-col items-center text-center px-5 pointer-events-none z-50">
+        <h1 className="text-white leading-[0.95]">
+          <span className="hero-anim hero-reveal block font-playfair italic font-normal text-5xl sm:text-7xl md:text-8xl" style={{ letterSpacing: "-0.05em", animationDelay: "0.25s" }}>
+            月星談
+          </span>
+          <span className="hero-anim hero-reveal block font-normal text-5xl sm:text-7xl md:text-8xl -mt-1" style={{ letterSpacing: "-0.08em", animationDelay: "0.42s" }}>
+            Try Search
+          </span>
+        </h1>
+      </div>
+
+      <div className="hero-anim hero-fade hidden sm:block absolute bottom-14 left-10 md:left-14 max-w-[260px] z-50" style={{ animationDelay: "0.7s" }}>
+        <p className="text-sm text-white/80 leading-relaxed">
+          月星談 은 달월, 별성, 이야기 담을 뜻하는 한자로 구성된 브랜드입니다 사람들이 잘 알지 못하는 월주와 생각외로 많이 쓰이지만 실제로 하늘에 떠있는 별의 이름이나, 외형, 색 등은 잘 모르는 별을 합친 별월주가 무엇인지 사람들에게 알리는 목적으로 구성되었습니다
+        </p>
+      </div>
+
+      <div className="hero-anim hero-fade absolute bottom-10 sm:bottom-24 left-5 right-5 sm:left-auto sm:right-10 md:right-14 max-w-full sm:max-w-[260px] flex flex-col items-start gap-4 sm:gap-5 z-50" style={{ animationDelay: "0.85s" }}>
+        <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
+          나와 닮은 달의 별이 무엇인지 궁금하신가요? 버튼을 클릭하여 내가 태어난 달을 수호하고 있는 12가지 별을 확인해보세요 !
+        </p>
+        <button
+          className="bg-[#626773] hover:bg-[#edc072] text-white text-sm font-medium px-7 py-3 rounded-full transition-all hover:scale-[1.03] active:scale-95 hover:shadow-lg hover:shadow-[#4a6fa5]/30"
+          onClick={() => { window.location.href = START_HREF; }}
+        >
+          Start click
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function App() {
+  return (
+    <div className="min-h-screen bg-white tracking-[-0.02em]" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <Hero />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
